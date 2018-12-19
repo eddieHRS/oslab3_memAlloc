@@ -1,0 +1,25 @@
+实验环境：ubuntu 16.04
+
+
+gcc -shared -fPIC mem.c -o libmem.so
+gcc -o myprogram mymain.c -Wall -Werror -lmem -L.
+export LD_LIBRARY_PATH=/home/eddie/桌面/oslab4
+在编译mymain时出现未定义的引用错误，原因是文件的依赖关系，mymain.c依赖动态链接库，所以mymain.c要写在
+前面，原来的编译语句  gcc -lmem -L. -o myprogram mymain.c -Wall -Werror动态链接库在先，出错
+
+
+
+
+node_t是记录空闲指针的数据结构  sizeof(node_t) = 16 bytes
+header_t是记录分配了的空间的信息，sizeof(header_t) = 8 bytes
+分配策略:mem_alloc(x) 则分配 8的倍数个byte，再加一个sizeof(node_t)
+         mem_init(size_of_region) size_of_region取pagesize的整数倍
+
+思路：只管理空闲区域。head为空闲区域的入口指针。
+     在malloc时，将malloc的值转化为8的倍数，通过FinfFit函数遍历空闲区域，根据分配策略来确定是否
+     存在这样的空闲区域，如果存在合适的空闲区域，则分配，并将新的空闲区域加入到空闲区域链表的合适位置
+     mem_dump中显示的size是纯空闲的size，例如size：88，则此块实际大小为88 + sizeof(node_t) = 104
+     此块空闲区域最多可以分配的大小是 104 - sizeof(header_t) = 96
+     这个问题是由于node_t 和 header_t的size大小不同导致的，如果相同，那么会简化许多。
+        
+
